@@ -30,7 +30,8 @@ class Listener:
             commands = input("=>").split(' ')
             self.send_reliably(commands)
             if commands[0] == "exit":
-                break
+                self.conn.close()
+                exit()
             results = self.recv_reliably()
             print(results)
 

