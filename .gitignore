@@ -2,3 +2,6 @@
 large_text
 Capture.png
 __pycache__/
+build
+dist
+backdoor.spec
